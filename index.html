@@ -148,7 +148,7 @@
   /* ---------- comments ---------- */
   .comments{padding:2px 14px 20px}
   .comment{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
-  .comment .ch{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-bottom:4px}
+  .comment .ch{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mute);margin-bottom:4px}
   .comment .ch b{color:var(--ink)}
   .comment .ct{white-space:pre-wrap;font-size:14px}
 
@@ -586,7 +586,11 @@ function matchesClientCat(p){
 }
 
 function load(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)); }catch(e){ return null; } }
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  // 詳細画面にいる場合、進捗をサーバーにプッシュ（デバウンス2秒）
+  if(currentPropId) pushProgressDebounced(currentPropId);
+}
 function uid(){ return Math.random().toString(36).slice(2,10); }
 
 /* ===== seed data (from actual PDF: ディークレスト太子堂駅前West 1207) ===== */
@@ -937,12 +941,23 @@ function renderDetail(){
   } else {
     cl.innerHTML = p.comments.slice().reverse().map(c=>{
       const photoHtml = c.photo ? `<img class="t-log-img" src="${c.photo}" onclick="showPhotoZoom(this.src)" alt="添付写真" style="margin-top:6px">` : '';
-      return `<div class="comment">
-        <div class="ch"><b>${esc(c.author||'—')}</b><span>${fmtDate(c.date)}</span></div>
+      return `<div class="comment" data-cid="${c.id}">
+        <div class="ch">
+          <b>${esc(c.author||'—')}</b><span>${fmtDate(c.date)}</span>
+          <span style="margin-left:auto;display:flex;gap:4px">
+            <button class="rm" data-role="edit-comment" style="color:var(--accent);font-size:11px">✎ 編集</button>
+            <button class="rm" data-role="delete-comment" style="font-size:11px">× 削除</button>
+          </span>
+        </div>
         <div class="ct">${esc(c.text)}</div>
         ${photoHtml}
       </div>`;
     }).join('');
+    cl.querySelectorAll('.comment').forEach(el=>{
+      const cid = el.dataset.cid;
+      el.querySelector('[data-role="edit-comment"]').onclick = ()=>editComment(cid);
+      el.querySelector('[data-role="delete-comment"]').onclick = ()=>deleteComment(cid);
+    });
   }
 
   // datalists
@@ -1479,6 +1494,8 @@ function deleteProp(){
 
 /* ===== comment sheet ===== */
 function openCommentSheet(){
+  _editingCommentId = null;
+  document.querySelector('#sheet-comment h3').textContent='現場メモ・添付追加';
   val('cs-author', settings.currentUser || localStorage.getItem('lastAuthor')||'');
   val('cs-text','');
   document.getElementById('cs-photo-preview').style.display='none';
@@ -1488,6 +1505,27 @@ function openCommentSheet(){
   document.getElementById('sheet-comment').classList.add('on');
 }
 function closeCommentSheet(){ document.getElementById('sheet-comment').classList.remove('on'); }
+var _editingCommentId = null;
+function editComment(cid){
+  const p = state.properties.find(x=>x.id===currentPropId);
+  const c = p.comments.find(x=>x.id===cid);
+  if(!c) return;
+  _editingCommentId = cid;
+  val('cs-author', c.author||'');
+  val('cs-text', c.text||'');
+  const preview = document.getElementById('cs-photo-preview');
+  if(c.photo){ preview.src=c.photo; preview.style.display='block'; preview.dataset.compressed=c.photo; }
+  else { preview.src=''; preview.style.display='none'; delete preview.dataset.compressed; }
+  document.getElementById('cs-photo-input').value='';
+  document.querySelector('#sheet-comment h3').textContent='現場メモ編集';
+  document.getElementById('sheet-comment').classList.add('on');
+}
+function deleteComment(cid){
+  if(!confirm('この現場メモを削除しますか？')) return;
+  const p = state.properties.find(x=>x.id===currentPropId);
+  p.comments = p.comments.filter(x=>x.id!==cid);
+  save(); renderDetail();
+}
 async function saveComment(){
   const p = state.properties.find(x=>x.id===currentPropId);
   const author = val('cs-author').trim();
@@ -1497,18 +1535,30 @@ async function saveComment(){
   if(!text && !compressed){ alert('内容または写真を入力してください'); return; }
   localStorage.setItem('lastAuthor', author);
   let photo = null;
-  if(compressed && settings.gasUrl){
+  if(compressed && compressed.startsWith('https://')){
+    // 既にDrive URL（編集時に既存写真を維持）
+    photo = compressed;
+  } else if(compressed && settings.gasUrl){
     document.getElementById('cs-save').textContent = '⏳ アップロード中...';
     const result = await uploadToDrive(compressed, p?.name, p?.room);
     if(result.ok) photo = result.url;
-    else photo = compressed; // fallback
+    else photo = compressed;
     document.getElementById('cs-save').textContent = '保存';
   } else if(compressed) {
     photo = compressed;
   }
-  const entry = {id:uid(),author,text,date:new Date().toISOString().slice(0,10)};
-  if(photo) entry.photo = photo;
-  p.comments.push(entry);
+  if(_editingCommentId){
+    // 編集モード
+    const c = p.comments.find(x=>x.id===_editingCommentId);
+    if(c){ c.author=author; c.text=text; if(photo) c.photo=photo; else if(!compressed) delete c.photo; }
+    _editingCommentId = null;
+    document.querySelector('#sheet-comment h3').textContent='現場メモ・添付追加';
+  } else {
+    // 新規
+    const entry = {id:uid(),author,text,date:new Date().toISOString().slice(0,10)};
+    if(photo) entry.photo = photo;
+    p.comments.push(entry);
+  }
   save(); closeCommentSheet(); renderDetail();
 }
 
@@ -1593,6 +1643,71 @@ function addUser(){
 }
 
 /* ===== GAS Web App 同期 (双方向) ===== */
+// ====================================================
+// 進捗データ双方向同期
+// ====================================================
+
+function buildProgressPayload(prop){
+  // タスクのユーザー変更データだけ抽出
+  var tasks = {};
+  (prop.tasks||[]).forEach(function(t){
+    var key = (t.category||'')+'|'+(t.contractor||'')+'|'+(t.room||'')+'|'+(t.name||'');
+    tasks[key] = {
+      status: t.status, doneAt: t.doneAt||null,
+      checkWork: t.checkWork||false, checkWorkBy: t.checkWorkBy||'', checkWorkAt: t.checkWorkAt||null,
+      checkAmount: t.checkAmount||false, checkAmountBy: t.checkAmountBy||'', checkAmountAt: t.checkAmountAt||null,
+      logs: t.logs||[], note: t.note||''
+    };
+  });
+  return { tasks: tasks, comments: prop.comments||[], updatedAt: Date.now(), updatedBy: settings.currentUser||'' };
+}
+
+var _pushTimer = {};
+function pushProgressDebounced(propId){
+  if(_pushTimer[propId]) clearTimeout(_pushTimer[propId]);
+  _pushTimer[propId] = setTimeout(function(){ pushProgressNow(propId); }, 2000);
+}
+
+async function pushProgressNow(propId){
+  if(!settings.gasUrl) return;
+  var prop = state.properties.find(function(x){return x.id===propId;});
+  if(!prop) return;
+  var progress = buildProgressPayload(prop);
+  try {
+    await fetch(settings.gasUrl, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'saveProgress', propertyName:prop.name, roomNumber:prop.room, progress:progress })
+    });
+  } catch(e) { console.warn('pushProgress failed', e); }
+}
+
+function applyProgressFromServer(prop, serverProgress){
+  if(!serverProgress) return;
+  // コメントをサーバーから適用（サーバーが正）
+  if(serverProgress.comments && serverProgress.comments.length) {
+    prop.comments = serverProgress.comments;
+  }
+  // タスク進捗をマージ
+  if(serverProgress.tasks){
+    (prop.tasks||[]).forEach(function(t){
+      var key = (t.category||'')+'|'+(t.contractor||'')+'|'+(t.room||'')+'|'+(t.name||'');
+      var sp = serverProgress.tasks[key];
+      if(!sp) return;
+      t.status = sp.status || t.status;
+      t.doneAt = sp.doneAt || t.doneAt;
+      t.checkWork = sp.checkWork || false;
+      t.checkWorkBy = sp.checkWorkBy || '';
+      t.checkWorkAt = sp.checkWorkAt || null;
+      t.checkAmount = sp.checkAmount || false;
+      t.checkAmountBy = sp.checkAmountBy || '';
+      t.checkAmountAt = sp.checkAmountAt || null;
+      t.logs = sp.logs && sp.logs.length ? sp.logs : (t.logs||[]);
+      t.note = sp.note || t.note;
+    });
+  }
+}
+
 async function gasFetchSync(url){
   const u = url.replace(/\/+$/,'') + '?action=sync';
   const res = await fetch(u, {method:'GET', redirect:'follow'});
@@ -1647,6 +1762,7 @@ function applyGasSync(payload){
     if(existing){
       Object.assign(existing, data);
       syncTasks(existing, p.tasks || [], p.contractors || []);
+      if(p.progress) applyProgressFromServer(existing, p.progress);
       upd++;
     } else {
       const np = Object.assign(
@@ -1654,6 +1770,7 @@ function applyGasSync(payload){
         data
       );
       syncTasks(np, p.tasks || [], p.contractors || []);
+      if(p.progress) applyProgressFromServer(np, p.progress);
       state.properties.unshift(np);
       add++;
     }
