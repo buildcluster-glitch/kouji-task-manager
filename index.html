@@ -1085,7 +1085,7 @@ function renderTaskRow(t, cat){
         ${logList}
         <div class="t-log-add">
           <input type="text" placeholder="作業ログ追加" data-role="log-input">
-          <input type="file" accept="image/*" capture="environment" data-role="log-photo-input" style="display:none">
+          <input type="file" accept="image/*" data-role="log-photo-input" style="display:none">
           <img class="photo-preview" data-role="log-photo-preview" style="display:none" src="">
           <button class="photo-btn" data-role="log-photo-btn" title="写真">📷</button>
           <button data-role="log-add">追加</button>
@@ -1164,7 +1164,7 @@ function wireTaskRows(el){
         e.stopPropagation();
         const file = photoInput.files[0];
         if(!file) return;
-        const compressed = await compressImage(file, 30000);
+        const compressed = await compressImage(file, 80000);
         photoPreview.src = compressed;
         photoPreview.style.display = 'block';
         photoPreview.dataset.compressed = compressed;
@@ -1255,7 +1255,7 @@ function compressImage(file, maxBytes){
       var img = new Image();
       img.onload = function(){
         var canvas = document.createElement('canvas');
-        var maxDim = 400;
+        var maxDim = 800;
         var w = img.width, h = img.height;
         if(w > h){ if(w > maxDim){ h = h*maxDim/w; w = maxDim; } }
         else { if(h > maxDim){ w = w*maxDim/h; h = maxDim; } }
