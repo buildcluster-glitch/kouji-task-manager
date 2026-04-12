@@ -283,6 +283,14 @@
       <div class="sub" id="d-sub"></div>
       <div class="kv" id="d-kv"></div>
     </div>
+
+    <!-- 現場メモ（物件情報の直下） -->
+    <div class="section-title">
+      <div class="st-l"><span class="st-total">📋 現場メモ・添付</span></div>
+      <button class="add" id="btn-add-comment">+ 追加</button>
+    </div>
+    <div class="comments" id="comment-list"></div>
+
     <div class="summary" id="d-summary"></div>
     <div class="filter-bar hide" id="task-filter-bar"></div>
 
@@ -317,12 +325,7 @@
     </div>
     <div class="tasks hide" id="task-list-trash"></div>
 
-    <!-- 現場メモ -->
-    <div class="section-title">
-      <div class="st-l"><span class="st-total">現場メモ</span></div>
-      <button class="add" id="btn-add-comment">+ 追加</button>
-    </div>
-    <div class="comments" id="comment-list"></div>
+    <!-- 現場メモは物件情報の直下に移動済み -->
   </section>
 
   <button class="fab hide" id="fab">+</button>
@@ -522,9 +525,16 @@
 <!-- ========== COMMENT SHEET ========== -->
 <div class="sheet-backdrop" id="sheet-comment">
   <div class="sheet" onclick="event.stopPropagation()">
-    <h3>現場メモ追加</h3>
+    <h3>現場メモ・添付追加</h3>
     <div class="field"><label>投稿者</label><input id="cs-author" placeholder="例: 最上登生"></div>
-    <div class="field"><label>内容</label><textarea id="cs-text" rows="5"></textarea></div>
+    <div class="field"><label>内容</label><textarea id="cs-text" rows="4"></textarea></div>
+    <div class="field"><label>写真添付（任意）</label>
+      <input type="file" accept="image/*" id="cs-photo-input" style="display:none">
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-ghost" id="cs-photo-btn" style="flex-shrink:0">📷 写真を選択</button>
+        <img id="cs-photo-preview" style="display:none;width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--line)" src="">
+      </div>
+    </div>
     <div class="actions">
       <button class="btn-ghost" id="cs-cancel">キャンセル</button>
       <button class="btn-primary" id="cs-save">保存</button>
@@ -925,12 +935,14 @@ function renderDetail(){
   if(!p.comments.length){
     cl.innerHTML = '<div class="empty">メモなし</div>';
   } else {
-    cl.innerHTML = p.comments.slice().reverse().map(c=>`
-      <div class="comment">
+    cl.innerHTML = p.comments.slice().reverse().map(c=>{
+      const photoHtml = c.photo ? `<img class="t-log-img" src="${c.photo}" onclick="showPhotoZoom(this.src)" alt="添付写真" style="margin-top:6px">` : '';
+      return `<div class="comment">
         <div class="ch"><b>${esc(c.author||'—')}</b><span>${fmtDate(c.date)}</span></div>
         <div class="ct">${esc(c.text)}</div>
-      </div>
-    `).join('');
+        ${photoHtml}
+      </div>`;
+    }).join('');
   }
 
   // datalists
@@ -1128,12 +1140,25 @@ function wireTaskRows(el){
     const logAdd = row.querySelector('[data-role="log-add"]');
     const logIn  = row.querySelector('[data-role="log-input"]');
     if(logAdd && logIn){
-      logAdd.onclick = e=>{
+      logAdd.onclick = async e=>{
         e.stopPropagation();
         const txt = logIn.value.trim();
         const preview = row.querySelector('[data-role="log-photo-preview"]');
-        const photo = preview && preview.dataset.compressed ? preview.dataset.compressed : null;
-        if(!txt && !photo) return;
+        const compressed = preview && preview.dataset.compressed ? preview.dataset.compressed : null;
+        if(!txt && !compressed) return;
+        let photo = null;
+        if(compressed && settings.gasUrl){
+          logAdd.textContent = '⏳';
+          logAdd.disabled = true;
+          const p = state.properties.find(x=>x.id===currentPropId);
+          const result = await uploadToDrive(compressed, p?.name, p?.room);
+          if(result.ok) photo = result.url;
+          else photo = compressed; // fallback to local
+          logAdd.textContent = '追加';
+          logAdd.disabled = false;
+        } else if(compressed) {
+          photo = compressed;
+        }
         addLog(id, txt, photo);
         if(preview){ preview.style.display='none'; preview.src=''; delete preview.dataset.compressed; }
         const fileInput = row.querySelector('[data-role="log-photo-input"]');
@@ -1164,7 +1189,7 @@ function wireTaskRows(el){
         e.stopPropagation();
         const file = photoInput.files[0];
         if(!file) return;
-        const compressed = await compressImage(file, 80000);
+        const compressed = await compressImage(file, 500000);
         photoPreview.src = compressed;
         photoPreview.style.display = 'block';
         photoPreview.dataset.compressed = compressed;
@@ -1255,7 +1280,7 @@ function compressImage(file, maxBytes){
       var img = new Image();
       img.onload = function(){
         var canvas = document.createElement('canvas');
-        var maxDim = 800;
+        var maxDim = 1600;
         var w = img.width, h = img.height;
         if(w > h){ if(w > maxDim){ h = h*maxDim/w; w = maxDim; } }
         else { if(h > maxDim){ w = w*maxDim/h; h = maxDim; } }
@@ -1277,6 +1302,30 @@ function compressImage(file, maxBytes){
 function showPhotoZoom(src){
   document.getElementById('photo-zoom-img').src = src;
   document.getElementById('photo-zoom').classList.add('on');
+}
+async function uploadToDrive(base64Data, propName, roomNo, fileName, mimeType){
+  if(!settings.gasUrl) return {ok:false, error:'GAS URL未設定'};
+  try {
+    const res = await fetch(settings.gasUrl, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({
+        action:'upload',
+        propertyName: propName||'',
+        roomNumber: roomNo||'',
+        fileName: fileName||('photo_'+Date.now()+'.jpg'),
+        mimeType: mimeType||'image/jpeg',
+        data: base64Data
+      })
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+    if(json.error) throw new Error(json.error);
+    return json;
+  } catch(e) {
+    console.warn('uploadToDrive失敗', e);
+    return {ok:false, error:e.message};
+  }
 }
 function removeLog(taskId, idx){
   if(!confirm('この作業ログを削除しますか？')) return;
@@ -1430,18 +1479,36 @@ function deleteProp(){
 
 /* ===== comment sheet ===== */
 function openCommentSheet(){
-  val('cs-author', localStorage.getItem('lastAuthor')||'');
+  val('cs-author', settings.currentUser || localStorage.getItem('lastAuthor')||'');
   val('cs-text','');
+  document.getElementById('cs-photo-preview').style.display='none';
+  document.getElementById('cs-photo-preview').src='';
+  document.getElementById('cs-photo-input').value='';
+  delete document.getElementById('cs-photo-preview').dataset.compressed;
   document.getElementById('sheet-comment').classList.add('on');
 }
 function closeCommentSheet(){ document.getElementById('sheet-comment').classList.remove('on'); }
-function saveComment(){
+async function saveComment(){
   const p = state.properties.find(x=>x.id===currentPropId);
   const author = val('cs-author').trim();
   const text = val('cs-text').trim();
-  if(!text){ alert('内容を入力してください'); return; }
+  const preview = document.getElementById('cs-photo-preview');
+  const compressed = preview.dataset.compressed || null;
+  if(!text && !compressed){ alert('内容または写真を入力してください'); return; }
   localStorage.setItem('lastAuthor', author);
-  p.comments.push({id:uid(),author,text,date:new Date().toISOString().slice(0,10)});
+  let photo = null;
+  if(compressed && settings.gasUrl){
+    document.getElementById('cs-save').textContent = '⏳ アップロード中...';
+    const result = await uploadToDrive(compressed, p?.name, p?.room);
+    if(result.ok) photo = result.url;
+    else photo = compressed; // fallback
+    document.getElementById('cs-save').textContent = '保存';
+  } else if(compressed) {
+    photo = compressed;
+  }
+  const entry = {id:uid(),author,text,date:new Date().toISOString().slice(0,10)};
+  if(photo) entry.photo = photo;
+  p.comments.push(entry);
   save(); closeCommentSheet(); renderDetail();
 }
 
@@ -1982,6 +2049,16 @@ document.getElementById('sheet-prop').onclick = closePropSheet;
 document.getElementById('cs-cancel').onclick = closeCommentSheet;
 document.getElementById('cs-save').onclick = saveComment;
 document.getElementById('sheet-comment').onclick = closeCommentSheet;
+document.getElementById('cs-photo-btn').onclick = ()=>document.getElementById('cs-photo-input').click();
+document.getElementById('cs-photo-input').onchange = async function(){
+  const file = this.files[0];
+  if(!file) return;
+  const compressed = await compressImage(file, 500000);
+  const preview = document.getElementById('cs-photo-preview');
+  preview.src = compressed;
+  preview.style.display = 'block';
+  preview.dataset.compressed = compressed;
+};
 
 // ゴミ箱 toggle
 document.getElementById('btn-toggle-trash').onclick = e=>{
