@@ -593,134 +593,9 @@ function save(){
 }
 function uid(){ return Math.random().toString(36).slice(2,10); }
 
-/* ===== seed data (from actual PDF: ディークレスト太子堂駅前West 1207) ===== */
+/* ===== seed data (empty - all data comes from GAS sync) ===== */
 function seed(){
-  const t = (o)=>({id:uid(),status:'todo',checkWork:false,checkAmount:false,logs:[],note:'',...o});
-  return { properties: [
-    {
-      id:'p-daishido-west-1207',
-      name:'ディークレスト太子堂駅前West', room:'1207', layout:'1LDK',
-      address:'仙台市太白区あすと長町3丁目11-1',
-      client:'(株)ビルドクラスタ / 山一地所',
-      mgmt:'(株)山一地所管理物件',
-      moveout:'令和8年3月', orderDate:'2026-04-10',
-      movein:'未定', disinfect:'', keyChange:'', keyCon:'',
-      entKey:'ジョイナー・417', entCode:'※3492呼',
-      pic:'鈴木 悠平', tel:'080-1221-5974',
-      parking:'※画像参照', utility:'4/14〜',
-      finalDate:'2026-04-30', finalBy:'', completeDate:'',
-      tasks:[
-        /* 外注 */
-        t({category:'outsource',contractor:'はやでん',schedule:'4/15迄',room:'廊下',name:'廊下照明DL交換',surface:'',spec:'要ボード開口 ※115→125mm',qty:3,unit:'箇所',amount:21000}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'洗面所',name:'クロス貼替',surface:'壁北・南面',spec:'無地量産クロス',qty:4,unit:'㎡',amount:3400}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'洋室CL',name:'クロス貼替',surface:'壁・天全面',spec:'無地量産クロス',qty:6,unit:'㎡',amount:5100}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'各室',name:'下地調整費',surface:'壁',spec:'',qty:1,unit:'式',amount:1000}),
-        t({category:'outsource',contractor:"OM's ONE",schedule:'4/24〜28',room:'LDK',name:'クロスカラーリング',surface:'壁南面',spec:'※材支給',qty:6,unit:'㎡',amount:2640}),
-        t({category:'outsource',contractor:"OM's ONE",schedule:'4/24〜28',room:'全室',name:'ハウスクリーニング 1LDK',surface:'',spec:'',qty:1,unit:'式',amount:18000}),
-        t({category:'outsource',contractor:"OM's ONE",schedule:'4/24〜28',room:'洋室',name:'エアコン高圧洗浄',surface:'',spec:'',qty:1,unit:'式',amount:6000}),
-        t({category:'outsource',contractor:"OM's ONE",schedule:'4/24〜28',room:'各室',name:'ポリッシャー掛け剥離清掃',surface:'',spec:'LDK・洋室・廊下',qty:24,unit:'㎡',amount:14400}),
-        /* 外注の減工事 */
-        t({category:'reduced',room:'LDK',name:'クロス貼替',surface:'壁西面',spec:'減工事',qty:10,unit:'㎡'}),
-        t({category:'reduced',room:'LDK',name:'クロス貼替',surface:'壁北面',spec:'減工事',qty:5,unit:'㎡'}),
-
-        /* 自社施工 */
-        t({category:'inhouse',room:'洋室',name:'エアコンリモコン電池交換提案',qty:1,unit:'箇所'}),
-        t({category:'inhouse',room:'台所',name:'排水キク（大）交換提案',qty:1,unit:'個'}),
-        t({category:'inhouse',room:'浴室',name:'浴室目地シーリングやりかえ',spec:'腰下+給湯器リモコン周り',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'台所',name:'流し台目地シーリングやりかえ',spec:'正面1方のみ',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'浴室',name:'シャワーホース・ヘッド交換提案',qty:1,unit:'個'}),
-        t({category:'inhouse',room:'浴室',name:'浴室鏡交換提案',spec:'大サイズ',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'各室',name:'コンセントプレート交換',spec:'神保タイプ ※黄色あり',qty:4,unit:'枚'}),
-        t({category:'inhouse',room:'バルコニー',name:'鳩避けネット ベース再取付け',spec:'無償対応',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'各室',name:'レジスター（給気口）交換提案',qty:2,unit:'箇所'}),
-        t({category:'inhouse',room:'洗面所',name:'化粧台排水トラップ交換提案',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'洗面所',name:'化粧台収納開き戸下部 Lプレート施工',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'各室',name:'クロスクリーニング・補修',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'LDK',name:'LDK開き戸 戸当たり再接着補修',qty:1,unit:'箇所'}),
-        t({category:'inhouse',room:'台所',name:'IHクッキングヒーター交換提案',qty:1,unit:'式'}),
-        /* 自社の減工事 */
-        t({category:'reduced',room:'全室',name:'建具・サッシ調整費',qty:1,unit:'式'}),
-        t({category:'reduced',room:'浴室',name:'鏡磨き',qty:1,unit:'式'}),
-        t({category:'reduced',room:'台所',name:'排水カゴ交換提案',spec:'Belca製',qty:1,unit:'個'}),
-        t({category:'reduced',room:'洗面所',name:'排水チェーン・排水ゴム交換提案',qty:1,unit:'式'}),
-        t({category:'reduced',room:'台所',name:'流し台シングルレバー水栓交換提案',spec:'台付',qty:1,unit:'式'}),
-      ],
-      comments:[]
-    },
-    {
-      id:'p-daishido-east-1010',
-      name:'ディークレスト太子堂駅前East', room:'1010', layout:'1LDK',
-      address:'仙台市太白区あすと長町3丁目11-2',
-      client:'(株)ビルドクラスタ / 山一地所',
-      mgmt:'(株)山一地所管理物件',
-      moveout:'令和8年3月', orderDate:'2026-04-10',
-      movein:'4/29(水)', disinfect:'除菌有り',
-      keyChange:'2026-04-24', keyCon:'カギハシ 桜井080-3329-8998',
-      entKey:'ジョイナー・417', entCode:'※3492呼',
-      pic:'鈴木 悠平', tel:'080-1221-5974',
-      parking:'画像参照', utility:'4/14〜',
-      finalDate:'2026-04-28', finalBy:'', completeDate:'',
-      tasks:[
-        /* 外注 15項目 */
-        t({category:'outsource',contractor:'はやでん',schedule:'4/15迄',room:'台所',name:'廊下＋LED入口照明DL交換',spec:'要ボード開口 ※115→125mm',qty:3,unit:'箇所',amount:21000}),
-        t({category:'outsource',contractor:'はやでん',schedule:'4/15迄',room:'台所',name:'台所照明DL交換',spec:'要ボード開口',qty:1,unit:'箇所',amount:7000}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'玄関',name:'クロス貼替',surface:'壁西・東面（西面＋東棚板下部）',spec:'無地量産クロス',qty:3,unit:'㎡',amount:2550}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'台所',name:'クロス貼替',surface:'天面〜壁1面（西面）',spec:'無地量産クロス',qty:4,unit:'㎡',amount:3400}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'LDK',name:'クロス貼替',surface:'壁南面',spec:'無地量産クロス',qty:10,unit:'㎡',amount:8500}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'洋室',name:'クロス貼替',surface:'壁西面',spec:'無地量産クロス',qty:9,unit:'㎡',amount:7650}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'LDK',name:'クロス貼替',surface:'壁西面（給湯リモコン面）',spec:'無地量産クロス',qty:6,unit:'㎡',amount:5100}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'トイレ',name:'トイレCF貼替',surface:'床全面',spec:'HM-12048',qty:1,unit:'式',amount:4500}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'トイレ',name:'ソフト巾木交換',surface:'床全面',qty:4,unit:'m',amount:2000}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'洗面所',name:'洗面所CF貼替',surface:'床全面（洗面台横隙間含む）',spec:'HM-12048',qty:1,unit:'式',amount:6750}),
-        t({category:'outsource',contractor:'ムラカベ',schedule:'4/16〜23',room:'洗面所',name:'ソフト巾木交換',surface:'床全面',qty:4,unit:'m',amount:2000}),
-        t({category:'outsource',contractor:"OM's ONE",schedule:'4/24〜27',room:'トイレ',name:'クロスカラーリング',surface:'壁全面',spec:'※材支給',qty:6,unit:'㎡',amount:2640}),
-        t({category:'outsource',contractor:"OM's ONE",schedule:'4/24〜27',room:'洋室CL（右）',name:'クロスカラーリング',surface:'壁・天全面',spec:'※材支給',qty:4,unit:'㎡',amount:1760}),
-        t({category:'outsource',contractor:"OM's ONE",schedule:'4/24〜27',room:'全室',name:'ハウスクリーニング 1LDK',qty:1,unit:'式',amount:18000}),
-        t({category:'outsource',contractor:"OM's ONE",schedule:'4/24〜27',room:'洋室',name:'エアコン高圧洗浄',qty:1,unit:'式',amount:6000}),
-        /* 自社施工 23項目 */
-        t({category:'inhouse',room:'浴室',name:'鏡磨き',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'台所',name:'排水キク（大）交換提案',qty:1,unit:'個'}),
-        t({category:'inhouse',room:'台所',name:'排水カゴ交換提案',spec:'Belca製',qty:1,unit:'個'}),
-        t({category:'inhouse',room:'各室',name:'電球交換提案',spec:'LEDクリプトン電球',qty:2,unit:'個'}),
-        t({category:'inhouse',room:'各室',name:'電球交換提案',spec:'LED40W電球',qty:4,unit:'個'}),
-        t({category:'inhouse',room:'台所',name:'IHクッキングヒーター交換提案',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'台所',name:'流し台目地シーリングやりかえ',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'浴室',name:'浴室目地シーリングやりかえ',spec:'腰下+給湯器リモコン周り',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'浴室',name:'シャワーホース・ヘッド交換提案',qty:1,unit:'個'}),
-        t({category:'inhouse',room:'LDK',name:'床凹み箇所簡易リペア補修',qty:1,unit:'箇所'}),
-        t({category:'inhouse',room:'各室',name:'クロスクリーニング・補修',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'LDK',name:'LDK間仕切りレール入隅補修',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'LDK',name:'コンセントプレート交換',spec:'神保タイプ ※黄色箇所のみ',qty:2,unit:'枚'}),
-        t({category:'inhouse',room:'LDK',name:'網戸張替',spec:'上下枠分割タイプ',qty:1,unit:'枚'}),
-        t({category:'inhouse',room:'洋室',name:'網戸張替',qty:1,unit:'枚'}),
-        t({category:'inhouse',room:'洗面所',name:'化粧台収納開き戸下部Lプレート施工',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'洗面所',name:'化粧台排水トラップ交換提案',qty:1,unit:'式'}),
-        t({category:'inhouse',room:'浴室',name:'浴室ヘアキャッチャー補充',qty:1,unit:'箇所'}),
-        t({category:'inhouse',room:'浴室',name:'浴室乾燥機フィルター交換',qty:1,unit:'箇所'}),
-        t({category:'inhouse',room:'各室',name:'レジスター（給気口）交換提案',qty:2,unit:'箇所'}),
-        t({category:'inhouse',room:'LDK',name:'カーテン房掛け新設',spec:'AC-809-XC',qty:1,unit:'箇所'}),
-        t({category:'inhouse',room:'LDK',name:'アース付きコンセント交換',spec:'神保タイプ ※破損あり',qty:1,unit:'箇所'}),
-        t({category:'inhouse',room:'台所',name:'LEDキッチン吊元灯交換提案',qty:1,unit:'台'}),
-        /* 減工事 5項目 */
-        t({category:'reduced',room:'全室',name:'建具・サッシ調整費',qty:1,unit:'式'}),
-        t({category:'reduced',room:'洋室',name:'エアコンリモコン電池交換提案',qty:1,unit:'箇所'}),
-        t({category:'reduced',room:'洋室',name:'照明リモコン電池交換提案',qty:1,unit:'箇所'}),
-        t({category:'reduced',room:'洗面所',name:'排水チェーン・排水ゴム交換提案',qty:1,unit:'式'}),
-        t({category:'reduced',room:'台所',name:'流し台収納開き戸タッチアップ補修',qty:3,unit:'箇所'}),
-      ],
-      comments:[]
-    },
-    {id:'p-eiwadai-202',name:'エクセレント永和台',room:'202',layout:'2DK',address:'仙台市泉区永和台38-15',client:'山一地所',moveout:'令和8年2月',orderDate:'2026-04-04',finalDate:'2026-04-20',mgmt:'',movein:'未定',disinfect:'',keyChange:'',keyCon:'',entKey:'ジョイナー・417',entCode:'',pic:'最上 登生',tel:'090-1932-2255',parking:'5、7番',utility:'4/7〜',finalBy:'',completeDate:'',tasks:[],comments:[]},
-    {id:'p-daishido-east801',name:'ディークレスト太子堂駅East',room:'801',client:'山一地所',layout:'',address:'',moveout:'',orderDate:'',tasks:[],comments:[]},
-    {id:'p-ginnancho-505',name:'【修繕】フローセラス銀杏町',room:'505',client:'山一地所',tasks:[],comments:[]},
-    {id:'p-humming-c101',name:'ハミングパーク',room:'C101',client:'山一地所',tasks:[],comments:[]},
-    {id:'p-busland-606',name:'バースランド小松島',room:'606',client:'山一地所',tasks:[],comments:[]},
-    {id:'p-ry-702',name:'Ry the oval',room:'702',client:'山一地所',tasks:[],comments:[]},
-    {id:'p-lions-1203',name:'ライオンズマンション本町',room:'1203',client:'山一地所',tasks:[],comments:[]},
-    {id:'p-op-205',name:'オーブ',room:'205',client:'みどり不動産',tasks:[],comments:[]},
-    {id:'p-sarucopan-105',name:'サリュコパン',room:'105',client:'みどり不動産',tasks:[],comments:[]},
-    {id:'p-sanpati-101',name:'サンパティ',room:'101',client:'みどり不動産',tasks:[],comments:[]},
-  ].map(p=>Object.assign({mgmt:'',movein:'',disinfect:'',keyChange:'',keyCon:'',entKey:'',entCode:'',pic:'',tel:'',parking:'',utility:'',finalDate:'',finalBy:'',completeDate:'',moveout:'',orderDate:'',address:'',layout:'',tasks:[],comments:[]},p))};
+  return { properties: [] };
 }
 
 /* ===== status / trash / archive helpers ===== */
@@ -1161,18 +1036,13 @@ function wireTaskRows(el){
         const preview = row.querySelector('[data-role="log-photo-preview"]');
         const compressed = preview && preview.dataset.compressed ? preview.dataset.compressed : null;
         if(!txt && !compressed) return;
-        let photo = null;
-        if(compressed && settings.gasUrl){
+        let photo = compressed;
+        if(compressed && settings.gasUrl && !compressed.startsWith('https://')){
           logAdd.textContent = '⏳';
-          logAdd.disabled = true;
           const p = state.properties.find(x=>x.id===currentPropId);
           const result = await uploadToDrive(compressed, p?.name, p?.room);
           if(result.ok) photo = result.url;
-          else photo = compressed; // fallback to local
           logAdd.textContent = '追加';
-          logAdd.disabled = false;
-        } else if(compressed) {
-          photo = compressed;
         }
         addLog(id, txt, photo);
         if(preview){ preview.style.display='none'; preview.src=''; delete preview.dataset.compressed; }
@@ -1318,29 +1188,58 @@ function showPhotoZoom(src){
   document.getElementById('photo-zoom-img').src = src;
   document.getElementById('photo-zoom').classList.add('on');
 }
-async function uploadToDrive(base64Data, propName, roomNo, fileName, mimeType){
-  if(!settings.gasUrl) return {ok:false, error:'GAS URL未設定'};
-  try {
-    const res = await fetch(settings.gasUrl, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({
-        action:'upload',
-        propertyName: propName||'',
-        roomNumber: roomNo||'',
-        fileName: fileName||('photo_'+Date.now()+'.jpg'),
-        mimeType: mimeType||'image/jpeg',
-        data: base64Data
-      })
-    });
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const json = await res.json();
-    if(json.error) throw new Error(json.error);
-    return json;
-  } catch(e) {
-    console.warn('uploadToDrive失敗', e);
-    return {ok:false, error:e.message};
-  }
+// iframe Bridge 方式で Drive にアップロード（CORS回避）
+var _uploadIframe = null;
+var _uploadReady = false;
+var _uploadCallbacks = {};
+var _uploadQueue = [];
+
+function initUploadBridge(){
+  if(_uploadIframe) return;
+  if(!settings.gasUrl) return;
+  _uploadIframe = document.createElement('iframe');
+  _uploadIframe.style.display = 'none';
+  _uploadIframe.src = settings.gasUrl + '?action=uploadPage';
+  document.body.appendChild(_uploadIframe);
+  window.addEventListener('message', function(e){
+    if(!e.data) return;
+    if(e.data.type === 'uploadReady'){
+      _uploadReady = true;
+      _uploadQueue.forEach(function(q){ _uploadIframe.contentWindow.postMessage(q,'*'); });
+      _uploadQueue = [];
+    }
+    if(e.data.type === 'uploadResult'){
+      var cb = _uploadCallbacks[e.data.id];
+      if(cb){ cb(e.data.result); delete _uploadCallbacks[e.data.id]; }
+    }
+  });
+}
+
+function uploadToDrive(base64Data, propName, roomNo, fileName, mimeType){
+  return new Promise(function(resolve){
+    if(!settings.gasUrl){ resolve({ok:false, error:'GAS URL未設定'}); return; }
+    initUploadBridge();
+    var id = uid();
+    var msg = {
+      action:'upload', id:id,
+      propertyName: propName||'', roomNumber: roomNo||'',
+      fileName: fileName||('photo_'+Date.now()+'.jpg'),
+      mimeType: mimeType||'image/jpeg',
+      data: base64Data
+    };
+    _uploadCallbacks[id] = resolve;
+    if(_uploadReady && _uploadIframe){
+      _uploadIframe.contentWindow.postMessage(msg, '*');
+    } else {
+      _uploadQueue.push(msg);
+    }
+    setTimeout(function(){
+      if(_uploadCallbacks[id]){
+        resolve({ok:false, error:'タイムアウト（30秒）'});
+        delete _uploadCallbacks[id];
+      }
+    }, 30000);
+  });
 }
 function removeLog(taskId, idx){
   if(!confirm('この作業ログを削除しますか？')) return;
@@ -1536,14 +1435,13 @@ async function saveComment(){
   localStorage.setItem('lastAuthor', author);
   let photo = null;
   if(compressed && compressed.startsWith('https://')){
-    // 既にDrive URL（編集時に既存写真を維持）
     photo = compressed;
   } else if(compressed && settings.gasUrl){
     document.getElementById('cs-save').textContent = '⏳ アップロード中...';
     const result = await uploadToDrive(compressed, p?.name, p?.room);
+    document.getElementById('cs-save').textContent = '保存';
     if(result.ok) photo = result.url;
     else photo = compressed;
-    document.getElementById('cs-save').textContent = '保存';
   } else if(compressed) {
     photo = compressed;
   }
