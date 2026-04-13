@@ -325,7 +325,10 @@
     </div>
     <div class="tasks hide" id="task-list-trash"></div>
 
-    <!-- 現場メモは物件情報の直下に移動済み -->
+    <!-- 完全完了確認ボタン -->
+    <div style="padding:14px">
+      <button class="btn-danger" id="btn-complete-prop" style="width:100%;padding:14px;font-size:15px;border-radius:12px">✅ 完全完了確認</button>
+    </div>
   </section>
 
   <button class="fab hide" id="fab">+</button>
@@ -2094,6 +2097,27 @@ document.getElementById('cs-photo-input').onchange = async function(){
 };
 
 // ゴミ箱 toggle
+document.getElementById('btn-complete-prop').onclick = async ()=>{
+  const p = state.properties.find(x=>x.id===currentPropId);
+  if(!p) return;
+  const today = new Date().toISOString().slice(0,10);
+  if(!confirm(`「${p.name} ${p.room||''}」を完全完了にしますか？\n\n完了日: ${today}\n一覧から消えてアーカイブに移動します。\nスプシの完了日(H列)にも反映されます。`)) return;
+  p.completeDate = today;
+  save();
+  // スプシにも完了日を書き込む
+  if(settings.gasUrl && p.mgmtNo){
+    try {
+      await fetch(settings.gasUrl, {
+        method:'POST', redirect:'follow',
+        headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({ action:'setCompleteDate', no: p.mgmtNo, date: today })
+      });
+    } catch(e) { console.warn('setCompleteDate failed', e); }
+  }
+  alert('完全完了しました。アーカイブに移動します。');
+  showList();
+};
+
 document.getElementById('btn-toggle-trash').onclick = e=>{
   e.stopPropagation();
   const el = document.getElementById('task-list-trash');
