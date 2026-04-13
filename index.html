@@ -2104,13 +2104,20 @@ document.getElementById('btn-complete-prop').onclick = async ()=>{
   if(!confirm(`「${p.name} ${p.room||''}」を完全完了にしますか？\n\n完了日: ${today}\n一覧から消えてアーカイブに移動します。\nスプシの完了日(H列)にも反映されます。`)) return;
   p.completeDate = today;
   save();
-  // スプシにも完了日を書き込む
+  // スプシにも完了日を書き込む（iframe bridge経由）
   if(settings.gasUrl && p.mgmtNo){
     try {
-      await fetch(settings.gasUrl, {
-        method:'POST', redirect:'follow',
-        headers:{'Content-Type':'text/plain'},
-        body: JSON.stringify({ action:'setCompleteDate', no: p.mgmtNo, date: today })
+      initUploadBridge();
+      await new Promise(function(resolve){
+        var id = uid();
+        var msg = { action:'setCompleteDate', id:id, no:p.mgmtNo, date:today };
+        _uploadCallbacks[id] = resolve;
+        if(_uploadReady && _uploadIframe){
+          _uploadIframe.contentWindow.postMessage(msg, '*');
+        } else {
+          _uploadQueue.push(msg);
+        }
+        setTimeout(function(){ if(_uploadCallbacks[id]){ resolve({ok:false}); delete _uploadCallbacks[id]; } }, 15000);
       });
     } catch(e) { console.warn('setCompleteDate failed', e); }
   }
