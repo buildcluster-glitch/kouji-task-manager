@@ -2104,12 +2104,18 @@ document.getElementById('btn-complete-prop').onclick = async ()=>{
   if(!confirm(`「${p.name} ${p.room||''}」を完全完了にしますか？\n\n完了日: ${today}\n一覧から消えてアーカイブに移動します。\nスプシの完了日(H列)にも反映されます。`)) return;
   p.completeDate = today;
   save();
-  // スプシにも完了日を書き込む（GETリクエスト - CORS問題なし）
+  // スプシにも完了日を書き込む（GETリクエスト）
   if(settings.gasUrl && p.mgmtNo){
     try {
       var url = settings.gasUrl + '?action=setCompleteDate&no=' + encodeURIComponent(p.mgmtNo) + '&date=' + encodeURIComponent(today);
-      await fetch(url, {method:'GET', redirect:'follow'});
-    } catch(e) { console.warn('setCompleteDate failed', e); }
+      var res = await fetch(url, {method:'GET', redirect:'follow'});
+      var txt = await res.text();
+      alert('スプシ書込結果: ' + txt.substring(0, 200));
+    } catch(e) {
+      alert('スプシ書込エラー: ' + e.message);
+    }
+  } else {
+    alert('書込スキップ: gasUrl=' + (settings.gasUrl?'あり':'なし') + ' mgmtNo=' + (p.mgmtNo||'なし'));
   }
   alert('完全完了しました。アーカイブに移動します。');
   showList();
