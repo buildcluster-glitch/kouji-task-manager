@@ -498,6 +498,10 @@
       </div>
     </details>
 
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+      <button class="btn-danger" id="im-reset" style="width:100%;padding:12px">🗑 ローカルデータをクリア（この端末のみ）</button>
+      <p style="font-size:10px;color:var(--mute);margin:6px 0 0">古いサンプルデータが残っている場合に使用。クリア後にGAS同期で最新データを取り込みます。</p>
+    </div>
     <div class="actions">
       <button class="btn-ghost" id="im-cancel">閉じる</button>
     </div>
@@ -2020,6 +2024,20 @@ document.getElementById('im-back').onclick = ()=>{
 };
 document.getElementById('im-gas-sync').onclick = runGasSync;
 document.getElementById('im-gas-test').onclick = runGasPing;
+document.getElementById('im-reset').onclick = ()=>{
+  if(!confirm('この端末のローカルデータを全てクリアします。\nGAS URLと設定は保持されます。\n\nよろしいですか？')) return;
+  var gasUrl = settings.gasUrl;
+  var currentUser = settings.currentUser;
+  localStorage.removeItem(STORAGE_KEY);
+  state = seed();
+  settings.gasUrl = gasUrl;
+  settings.currentUser = currentUser;
+  saveSettings();
+  save();
+  closeImportSheet();
+  showList();
+  alert('クリア完了。↻ボタンでGAS同期してください。');
+};
 
 document.getElementById('btn-refresh').onclick = async ()=>{
   if(!settings.gasUrl){
