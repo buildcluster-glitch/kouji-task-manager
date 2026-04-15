@@ -613,6 +613,8 @@ function applyStatusChange(t, newStatus){
   if(newStatus==='done' && old!=='done') t.doneAt = Date.now();
   if(newStatus!=='done' && old==='done') t.doneAt = null;
   t.status = newStatus;
+  t.statusBy = settings.currentUser || '';
+  t.statusAt = Date.now();
 }
 function migrateStatus(){
   let changed = false;
@@ -1007,7 +1009,7 @@ function renderTaskRow(t, cat){
     <div class="task ${t.status} ${cat==='reduced'?'reduced':''}" data-id="${t.id}">
       <div class="t-top">
         ${cat==='reduced' ? '<div class="check" style="opacity:.3">—</div>' :
-          `<button class="check" data-role="toggle">${t.status==='done'?'✓':t.status==='wip'?'◐':''}</button>`}
+          `<button class="check" data-role="toggle" title="${t.statusBy?esc(t.statusBy)+' '+fmtDateTime(t.statusAt):''}">${t.status==='done'?'✓':t.status==='wip'?'◐':''}</button>`}
         <div class="body" data-role="edit">
           <div class="t-head">
             ${t.room?`<span class="t-room">${esc(t.room)}</span>`:''}
@@ -1015,6 +1017,7 @@ function renderTaskRow(t, cat){
             ${qtyStr?`<span class="t-qty">${esc(qtyStr)}</span>`:''}
           </div>
           ${sub.length?`<div class="t-sub">${sub.join('<span class="sep">·</span>')}</div>`:''}
+          ${t.statusBy?`<div class="t-sub" style="font-size:10px;color:var(--st-wip)">${esc(STATUSES[t.status]||t.status)} : ${esc(t.statusBy)} ${fmtDateTime(t.statusAt)}</div>`:''}
           ${noteHtml}
         </div>
         <button class="t-more" data-role="edit">›</button>
@@ -1558,7 +1561,7 @@ function buildProgressPayload(prop){
   (prop.tasks||[]).forEach(function(t){
     var key = (t.category||'')+'|'+(t.contractor||'')+'|'+(t.room||'')+'|'+(t.name||'');
     tasks[key] = {
-      status: t.status, doneAt: t.doneAt||null,
+      status: t.status, doneAt: t.doneAt||null, statusBy: t.statusBy||'', statusAt: t.statusAt||null,
       checkWork: t.checkWork||false, checkWorkBy: t.checkWorkBy||'', checkWorkAt: t.checkWorkAt||null,
       checkAmount: t.checkAmount||false, checkAmountBy: t.checkAmountBy||'', checkAmountAt: t.checkAmountAt||null,
       logs: t.logs||[], note: t.note||''
@@ -1601,6 +1604,8 @@ function applyProgressFromServer(prop, serverProgress){
       if(!sp) return;
       t.status = sp.status || t.status;
       t.doneAt = sp.doneAt || t.doneAt;
+      t.statusBy = sp.statusBy || t.statusBy || '';
+      t.statusAt = sp.statusAt || t.statusAt || null;
       t.checkWork = sp.checkWork || false;
       t.checkWorkBy = sp.checkWorkBy || '';
       t.checkWorkAt = sp.checkWorkAt || null;
