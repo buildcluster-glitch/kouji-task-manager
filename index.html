@@ -1128,6 +1128,7 @@ function renderTrash(p){
             <div class="t-sub" style="color:${remColor};font-weight:600">
               🗑 削除まで あと ${rem}日${doneDate?` ・ 完了: ${doneDate}`:''}
             </div>
+            ${t.statusBy?`<div class="t-sub" style="font-size:10px;color:var(--st-done)">完了 : ${esc(t.statusBy)} ${fmtDateTime(t.statusAt)}</div>`:''}
           </div>
         </div>
         <div class="chk-row">
