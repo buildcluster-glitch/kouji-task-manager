@@ -1756,34 +1756,7 @@ function syncTasks(prop, serverTasks, contractors){
     return;
   }
 
-  // タスク明細が空 → 業者サマリーでプレースホルダ
-  if(!contractors || !contractors.length) return;
-  contractors.forEach(c=>{
-    const key = (c.name||'').trim();
-    if(!key) return;
-    const schedule = fmtSchedule(c.startDate, c.endDate);
-    const existingTasks = (prop.tasks||[]).filter(t=>t.category==='outsource' && (t.contractor||'').trim()===key);
-    if(existingTasks.length){
-      const t = existingTasks[0];
-      t.amount = c.amount;
-      if(schedule) t.schedule = schedule;
-    } else {
-      prop.tasks.push({
-        id: uid(),
-        category: 'outsource',
-        contractor: key,
-        name: `${key} 工事一式`,
-        room: '', surface: '', spec: '',
-        qty: 1, unit: '式',
-        amount: c.amount,
-        schedule: schedule,
-        status: 'wip',
-        checkWork: false, checkWorkBy: '', checkWorkAt: null,
-        checkAmount: false, checkAmountBy: '', checkAmountAt: null,
-        logs: [], note: ''
-      });
-    }
-  });
+  // タスク明細が空 → プレースホルダは作らない（PDFアップロード後にタスクが入る）
 }
 
 async function runGasSync(){
