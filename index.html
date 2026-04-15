@@ -1636,8 +1636,8 @@ function applyGasSync(payload){
   let upd=0, add=0;
   payload.properties.forEach(p=>{
     // 物件No優先、なければ 物件名+号室 でマッチ
-    let existing = state.properties.find(x=>x.mgmtNo && x.mgmtNo===p.no);
-    if(!existing) existing = state.properties.find(x=>
+    // 名前+号室でマッチング（mgmtNo重複があるためNoは使わない）
+    let existing = state.properties.find(x=>
       x.name.replace(/\s+/g,'')===p.name.replace(/\s+/g,'') &&
       String(x.room||'').trim() === String(p.room||'').trim()
     );
